@@ -1,10 +1,15 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"net/http"
+	"os"
+	"time"
 
+	jwt "github.com/dgrijalva/jwt-go"
 	"github.com/gorilla/websocket"
+	"github.com/joho/godotenv"
 )
 
 type Message struct {
@@ -18,10 +23,16 @@ var broadcast = make(chan Message)
 var upgrader = websocket.Upgrader{}
 
 func main() {
-	fs := http.FileServer(http.Dir("./public"))
-	http.Handle("/", fs)
+	envErr := godotenv.Load()
+	if envErr != nil {
+		log.Fatal("Error loading .env file")
+	}
 
+	fs := http.FileServer(http.Dir("./public"))
+
+	http.Handle("/", fs)
 	http.HandleFunc("/ws", handleConnections)
+	http.HandleFunc("/register", register)
 
 	go handleMessages()
 
@@ -33,35 +44,30 @@ func main() {
 }
 
 func handleConnections(w http.ResponseWriter, r *http.Request) {
-	// Upgrade initial GET request to a websocket
 	ws, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
 		log.Fatal(err)
 	}
-	// Make sure we close the connection when the function returns
+
 	defer ws.Close()
 
 	clients[ws] = true
 
 	for {
 		var msg Message
-		// Read in a new message as JSON and map it to a Message object
 		err := ws.ReadJSON(&msg)
 		if err != nil {
 			log.Printf("error: %v", err)
 			delete(clients, ws)
 			break
 		}
-		// Send the newly received message to the broadcast channel
 		broadcast <- msg
 	}
 }
 
 func handleMessages() {
 	for {
-		// Grab the next message from the broadcast channel
 		msg := <-broadcast
-		// Send it out to every client that is currently connected
 		for client := range clients {
 			err := client.WriteJSON(msg)
 			if err != nil {
@@ -70,5 +76,50 @@ func handleMessages() {
 				delete(clients, client)
 			}
 		}
+	}
+}
+
+func register(w http.ResponseWriter, r *http.Request) {
+	user := r.FormValue("user")
+	email := r.FormValue("email")
+
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
+		"user":  user,
+		"email": email,
+	})
+
+	tokenString, err := token.SignedString([]byte(os.Getenv("SIGNING_SECRET")))
+
+	if err != nil {
+		log.Fatalf("Error signing: %s", err.Error())
+	}
+
+	http.SetCookie(w, &http.Cookie{
+		Name:    "gochat-auth-token",
+		Value:   tokenString,
+		Expires: time.Now().Add(time.Hour * 168),
+	})
+
+	w.WriteHeader(http.StatusOK)
+}
+
+func auth(w http.ResponseWriter, r *http.Request) {
+	cookie, err := r.Cookie("gochat-auth-token")
+	if err != nil {
+		w.WriteHeader(http.StatusUnauthorized)
+	}
+
+	token, err := jwt.Parse(cookie.Value, func(token *jwt.Token) (interface{}, error) {
+		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+			return nil, fmt.Errorf("Unexpected signing method: %v", token.Header["alg"])
+		}
+
+		return []byte(os.Getenv("SIGNING_SECRET")), nil
+	})
+
+	if _, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
+		w.WriteHeader(http.StatusOK)
+	} else {
+		w.WriteHeader(http.StatusUnauthorized)
 	}
 }
