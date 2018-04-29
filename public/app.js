@@ -38,17 +38,32 @@ new Vue({
             }
         },
         join: function () {
-            if (!this.email) {
+            var email = $('<p>').html(this.email).text();
+            var username = $('<p>').html(this.username).text();
+
+            if (!email) {
                 Materialize.toast('You must enter an email', 2000);
                 return
             }
-            if (!this.username) {
+            if (!username) {
                 Materialize.toast('You must choose a username', 2000);
                 return
             }
-            this.email = $('<p>').html(this.email).text();
-            this.username = $('<p>').html(this.username).text();
-            this.joined = true;
+
+            var that = this;
+            $.ajax({
+                type: "POST",
+                url: 'http://' + window.location.host + '/register',
+                data: {
+                    user: username,
+                    email: email
+                },
+                success: function(d) {
+                    that.email = email;
+                    that.username = username;
+                    that.joined = true;
+                }
+            });
         },
         gravatarURL: function(email) {
             return 'http://www.gravatar.com/avatar/' + CryptoJS.MD5(email);
