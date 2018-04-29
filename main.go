@@ -19,9 +19,8 @@ type User struct {
 }
 
 type Message struct {
-	Email    string `json:"email"`
-	Username string `json:"username"`
-	Message  string `json:"message"`
+	User    User   `json:"user"`
+	Message string `json:"message"`
 }
 
 var clients = make(map[*websocket.Conn]bool)
@@ -64,7 +63,6 @@ func handleConnections(w http.ResponseWriter, r *http.Request) {
 		var msg Message
 		err := ws.ReadJSON(&msg)
 		if err != nil {
-			log.Printf("error: %v", err)
 			delete(clients, ws)
 			break
 		}

@@ -15,8 +15,8 @@ new Vue({
         this.ws.addEventListener('message', function(e) {
             var msg = JSON.parse(e.data);
             that.chatContent += '<div class="chip">'
-                    + '<img src="' + that.gravatarURL(msg.email) + '">' // Avatar
-                    + msg.username
+                    + '<img src="' + that.gravatarURL(msg.user.email) + '">' // Avatar
+                    + msg.user.name
                 + '</div>'
                 + emojione.toImage(msg.message) + '<br/>'; // Parse emojis
 
@@ -27,7 +27,7 @@ new Vue({
             type: "POST",
             url: 'http://' + window.location.host + '/auth',
             success: function(d) {
-                that.username = d.username;
+                that.username = d.name;
                 that.email = d.email;
                 that.joined = true;
             }
@@ -38,8 +38,10 @@ new Vue({
             if (this.newMsg != '') {
                 this.ws.send(
                     JSON.stringify({
-                        email: this.email,
-                        username: this.username,
+                        user: {
+                            name: this.username,
+                            email: this.email
+                        },
                         message: $('<p>').html(this.newMsg).text() // Strip out html
                     }
                 ));
