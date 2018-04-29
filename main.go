@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
@@ -11,6 +12,11 @@ import (
 	"github.com/gorilla/websocket"
 	"github.com/joho/godotenv"
 )
+
+type User struct {
+	Name  string `json:"name"`
+	Email string `json:"email"`
+}
 
 type Message struct {
 	Email    string `json:"email"`
@@ -33,6 +39,7 @@ func main() {
 	http.Handle("/", fs)
 	http.HandleFunc("/ws", handleConnections)
 	http.HandleFunc("/register", register)
+	http.HandleFunc("/auth", auth)
 
 	go handleMessages()
 
@@ -117,8 +124,14 @@ func auth(w http.ResponseWriter, r *http.Request) {
 		return []byte(os.Getenv("SIGNING_SECRET")), nil
 	})
 
-	if _, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
+	if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
+		u := User{
+			Name:  claims["user"].(string),
+			Email: claims["email"].(string),
+		}
+		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
+		json.NewEncoder(w).Encode(u)
 	} else {
 		w.WriteHeader(http.StatusUnauthorized)
 	}

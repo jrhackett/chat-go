@@ -10,18 +10,27 @@ new Vue({
         joined: false // True if email and username have been filled in
     },
     created: function() {
-        var self = this;
+        var that = this;
         this.ws = new WebSocket('ws://' + window.location.host + '/ws');
         this.ws.addEventListener('message', function(e) {
             var msg = JSON.parse(e.data);
-            self.chatContent += '<div class="chip">'
-                    + '<img src="' + self.gravatarURL(msg.email) + '">' // Avatar
+            that.chatContent += '<div class="chip">'
+                    + '<img src="' + that.gravatarURL(msg.email) + '">' // Avatar
                     + msg.username
                 + '</div>'
                 + emojione.toImage(msg.message) + '<br/>'; // Parse emojis
 
             var element = document.getElementById('chat-messages');
             element.scrollTop = element.scrollHeight; // Auto scroll to the bottom
+        });
+        $.ajax({
+            type: "POST",
+            url: 'http://' + window.location.host + '/auth',
+            success: function(d) {
+                that.username = d.username;
+                that.email = d.email;
+                that.joined = true;
+            }
         });
     },
     methods: {
