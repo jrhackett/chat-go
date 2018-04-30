@@ -1,14 +1,11 @@
-import React, { Component } from 'react';
-import { render } from 'react-dom';
+import React, { Component } from 'react'
+import { render } from 'react-dom'
+import configureStore from './configureStore'
+import Root from './components/Root'
 
-export default class Hello extends Component {
-  render() {
-    return (
-      <div>
-        Hello from react es6
-      </div>
-    );
-  }
-}
+const store = configureStore()
 
-render(<Hello />, document.getElementById('app'));
+render(
+    <Root store={store} />,
+    document.getElementById('app')
+)
