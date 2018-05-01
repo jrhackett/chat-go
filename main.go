@@ -37,8 +37,8 @@ func main() {
 
 	http.Handle("/", fs)
 	http.HandleFunc("/ws", handleConnections)
-	http.HandleFunc("/register", register)
-	http.HandleFunc("/auth", auth)
+	http.HandleFunc("/api/v1/register", register)
+	http.HandleFunc("/api/v1/auth", auth)
 
 	go handleMessages()
 
