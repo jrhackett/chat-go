@@ -1,3 +1,4 @@
+// OLD VUE CODE TO BE REMOVED ONCE REACT PROJECT IS UP AND RUNNING
 new Vue({
     el: '#app',
 
