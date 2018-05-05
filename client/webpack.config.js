@@ -1,13 +1,13 @@
 const path = require('path');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const paths = {
-  DIST: path.resolve(__dirname, 'dist'),
-  SRC: path.resolve(__dirname, 'src'),
+    DIST: path.resolve(__dirname, 'dist'),
+    SRC: path.resolve(__dirname),
 }
 
 module.exports = {
     entry: {
-        index: './src/index.jsx'
+        index: path.join(paths.SRC, 'index.jsx')
     },
     devServer: {
         contentBase: paths.SRC,
@@ -33,7 +33,7 @@ module.exports = {
     },
      plugins: [
         new HtmlWebpackPlugin({
-            template: path.join(paths.SRC, 'index.html'),
+            template: path.join(paths.SRC, 'assets/index.html'),
         }),
     ],
 }
