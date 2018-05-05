@@ -2,7 +2,7 @@ import React from 'react'
 import { Provider, connect } from 'react-redux'
 import { HashRouter, Route, Redirect, Switch } from 'react-router-dom'
 import { authenticateUser } from '../actions/user'
-import Login from './Login'
+import Register from './user/Register'
 import Chat from './Chat'
 
 class Root extends React.Component {
@@ -16,12 +16,18 @@ class Root extends React.Component {
                 <HashRouter>
                     <div>
                         <Switch>
-                            <Route path="/login" component={Login} />
+                            <Route exact path="/register" render={() => (
+                                this.props.loggedIn ? (
+                                    <Redirect to="/" />
+                                ) : (
+                                    <Register />
+                                )
+                            )} />
                             <Route exact path="/" render={() => (
                                 this.props.loggedIn ? (
-                                    <Redirect to="/login" />
-                                ) : (
                                     <Chat />
+                                ) : (
+                                    <Redirect to="/register" />
                                 )
                             )} />
                         </Switch>

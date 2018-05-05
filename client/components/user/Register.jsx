@@ -1,8 +1,8 @@
 import React from 'react'
 import { connect } from 'react-redux'
-import { authenticateUser } from '../actions/user'
+import { registerUser } from '../../actions/user'
 
-class Login extends React.Component {
+class Register extends React.Component {
     constructor() {
         super()
         this.state = {
@@ -20,16 +20,19 @@ class Login extends React.Component {
     onSubmit(e) {
         e.stopPropagation()
         e.preventDefault()
-        this.props.onAuth()
+        this.props.onRegister({
+            name: this.state.username,
+            email: this.state.email
+        })
     }
     
     render() {
-        return(
+        return (
             <div>
                 <form onSubmit={() => false}>
                     <input onChange={ e => this.onInputChange('username', e.target.value) } />
                     <input onChange={ e => this.onInputChange('email', e.target.value) } />
-                    <button onClick={ e => this.onSubmit(e) }>Login</button>
+                    <button onClick={ e => this.onSubmit(e) }>Register</button>
                 </form>
             </div>
         )
@@ -37,9 +40,9 @@ class Login extends React.Component {
 }
 
 const mapDispatchToProps = (dispatch => ({
-    onAuth: () => {
-        dispatch(authenticateUser())
+    onRegister: (user) => {
+        dispatch(registerUser(user))
     }
 }))
 
-export default connect(null, mapDispatchToProps)(Login)
+export default connect(null, mapDispatchToProps)(Register)

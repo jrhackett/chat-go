@@ -11,7 +11,10 @@ module.exports = {
     },
     devServer: {
         contentBase: paths.SRC,
-        proxy: {'/api/**':  { target: 'http://localhost:8000', secure: false } }
+        proxy: {
+            '/api/**':  { target: 'http://localhost:8000', secure: false },
+            '/ws/**': { target: 'http://localhost:8000', secure: false }
+        }
     },
     resolve: {
         extensions: ['.js', '.jsx'],

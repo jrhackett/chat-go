@@ -36,8 +36,8 @@ func register(w http.ResponseWriter, r *http.Request) {
 }
 
 func auth(w http.ResponseWriter, r *http.Request) {
-	cookie, err := r.Cookie("gochat-auth-token")
-	if err != nil {
+	cookie, cookieErr := r.Cookie("gochat-auth-token")
+	if cookieErr != nil {
 		w.WriteHeader(http.StatusUnauthorized)
 	}
 
@@ -48,6 +48,9 @@ func auth(w http.ResponseWriter, r *http.Request) {
 
 		return []byte(os.Getenv("SIGNING_SECRET")), nil
 	})
+	if err != nil {
+		w.WriteHeader(http.StatusUnauthorized)
+	}
 
 	if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
 		u := User{
