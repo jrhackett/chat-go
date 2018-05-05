@@ -28,12 +28,10 @@ func main() {
 		log.Fatal("Error loading .env file")
 	}
 
-	fs := http.FileServer(http.Dir("./public"))
-
-	http.Handle("/", fs)
 	http.HandleFunc("/ws", handleConnections)
 	http.HandleFunc("/api/v1/register", register)
 	http.HandleFunc("/api/v1/auth", auth)
+	// TODO production file serving
 
 	go handleMessages()
 
