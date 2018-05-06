@@ -22,6 +22,10 @@ const user = (state = initialState, action) => {
                 user: null,
                 loggedIn: false
             }
+        case actionTypes.ADD_NEW_USER:
+            return state
+        case actionTypes.REFRESH_USERS:
+            return state
         default:
             return state
     }
