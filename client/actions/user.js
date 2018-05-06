@@ -4,20 +4,25 @@ import * as actionTypes from '../actionTypes'
 export const registerUser = (user) => {
     return (dispatch) => {
         return axios.post("/api/v1/register", user)
-            .then((user) => {
-                dispatch(successfulUserAuth(user))
+            .then((res) => {
+                dispatch(successfulUserAuth(res.data))
             })
-            .catch(() => dispatch(failedUserAuth()))
+            .catch(() => {
+                // dispatch(failedUserAuth())
+            })
     }
 }
 
 export const authenticateUser = () => {
     return (dispatch) => {
         return axios.post("/api/v1/auth")
-            .then((user) => {
-                dispatch(successfulUserAuth(user))
+            .then((res) => {
+                dispatch(successfulUserAuth(res.data))
             })
-            .catch(() => dispatch(failedUserAuth()))
+            .catch((e) => {
+                console.log(e)
+                // dispatch(failedUserAuth())
+            })
     }
 }
 

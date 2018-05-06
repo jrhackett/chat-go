@@ -3,7 +3,6 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"log"
 	"net/http"
 	"os"
 	"time"
@@ -11,19 +10,29 @@ import (
 	jwt "github.com/dgrijalva/jwt-go"
 )
 
+type User struct {
+	Name  string `json:"name"`
+	Email string `json:"email"`
+}
+
 func register(w http.ResponseWriter, r *http.Request) {
-	user := r.FormValue("user")
-	email := r.FormValue("email")
+	user := User{}
+
+	if decodeErr := json.NewDecoder(r.Body).Decode(&user); decodeErr != nil {
+		w.WriteHeader(http.StatusUnauthorized)
+	}
+
+	defer r.Body.Close()
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-		"user":  user,
-		"email": email,
+		"name":  user.Name,
+		"email": user.Email,
 	})
 
 	tokenString, err := token.SignedString([]byte(os.Getenv("SIGNING_SECRET")))
 
 	if err != nil {
-		log.Fatalf("Error signing: %s", err.Error())
+		w.WriteHeader(http.StatusUnauthorized)
 	}
 
 	http.SetCookie(w, &http.Cookie{
@@ -33,17 +42,18 @@ func register(w http.ResponseWriter, r *http.Request) {
 	})
 
 	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(user)
 }
 
 func auth(w http.ResponseWriter, r *http.Request) {
 	cookie, cookieErr := r.Cookie("gochat-auth-token")
-	if cookieErr != nil {
+	if cookieErr != nil || cookie == nil {
 		w.WriteHeader(http.StatusUnauthorized)
 	}
 
-	token, err := jwt.Parse(cookie.Value, func(token *jwt.Token) (interface{}, error) {
-		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
-			return nil, fmt.Errorf("Unexpected signing method: %v", token.Header["alg"])
+	token, err := jwt.Parse(cookie.Value, func(t *jwt.Token) (interface{}, error) {
+		if _, ok := t.Method.(*jwt.SigningMethodHMAC); !ok {
+			return nil, fmt.Errorf("Unexpected signing method: %v", t.Header["alg"])
 		}
 
 		return []byte(os.Getenv("SIGNING_SECRET")), nil
@@ -53,13 +63,13 @@ func auth(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
-		u := User{
-			Name:  claims["user"].(string),
+		user := User{
+			Name:  claims["name"].(string),
 			Email: claims["email"].(string),
 		}
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
-		json.NewEncoder(w).Encode(u)
+		json.NewEncoder(w).Encode(user)
 	} else {
 		w.WriteHeader(http.StatusUnauthorized)
 	}

@@ -13,10 +13,7 @@ const user = (state = initialState, action) => {
         case actionTypes.SUCCESSFUL_USER_AUTH:
             return {
                 ...state,
-                user: {
-                    name: action.user.name,
-                    email: action.user.email
-                },
+                user: action.user,
                 loggedIn: true
             }
         case actionTypes.FAILED_USER_AUTH:

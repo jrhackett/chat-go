@@ -1,7 +1,14 @@
 import React from 'react'
+import { connect } from 'react-redux'
 
-const Chat = ({}) => (
-    <div>You are logged in</div>
+const Chat = ({ user }) => (
+    <div>
+        <p>Logged in as: { user.name }, { user.email }</p>
+    </div>
 )
 
-export default Chat
+const mapStateToProps = state => ({
+    user: state.user.user
+})
+
+export default connect(mapStateToProps)(Chat)

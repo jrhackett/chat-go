@@ -8,11 +8,6 @@ import (
 	"github.com/joho/godotenv"
 )
 
-type User struct {
-	Name  string `json:"name"`
-	Email string `json:"email"`
-}
-
 type Message struct {
 	User    User   `json:"user"`
 	Message string `json:"message"`
