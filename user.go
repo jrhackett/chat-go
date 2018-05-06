@@ -10,16 +10,25 @@ import (
 	jwt "github.com/dgrijalva/jwt-go"
 )
 
-type User struct {
-	Name  string `json:"name"`
-	Email string `json:"email"`
-}
+type (
+	User struct {
+		Name  string `json:"name"`
+		Email string `json:"email"`
+	}
+
+	CustomClaims struct {
+		Name  string `json:"name"`
+		Email string `json:"email"`
+		jwt.StandardClaims
+	}
+)
 
 func register(w http.ResponseWriter, r *http.Request) {
 	user := User{}
 
 	if decodeErr := json.NewDecoder(r.Body).Decode(&user); decodeErr != nil {
 		w.WriteHeader(http.StatusUnauthorized)
+		return
 	}
 
 	defer r.Body.Close()
@@ -33,6 +42,7 @@ func register(w http.ResponseWriter, r *http.Request) {
 
 	if err != nil {
 		w.WriteHeader(http.StatusUnauthorized)
+		return
 	}
 
 	http.SetCookie(w, &http.Cookie{
@@ -47,25 +57,28 @@ func register(w http.ResponseWriter, r *http.Request) {
 
 func auth(w http.ResponseWriter, r *http.Request) {
 	cookie, cookieErr := r.Cookie("gochat-auth-token")
-	if cookieErr != nil || cookie == nil {
+	if cookieErr != nil || cookie == nil || cookie.Value == "" {
 		w.WriteHeader(http.StatusUnauthorized)
+		return
 	}
 
-	token, err := jwt.Parse(cookie.Value, func(t *jwt.Token) (interface{}, error) {
+	token, err := jwt.ParseWithClaims(cookie.Value, &CustomClaims{}, func(t *jwt.Token) (interface{}, error) {
 		if _, ok := t.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, fmt.Errorf("Unexpected signing method: %v", t.Header["alg"])
 		}
 
 		return []byte(os.Getenv("SIGNING_SECRET")), nil
 	})
+
 	if err != nil {
 		w.WriteHeader(http.StatusUnauthorized)
+		return
 	}
 
-	if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
+	if claims, ok := token.Claims.(*CustomClaims); ok && token.Valid {
 		user := User{
-			Name:  claims["name"].(string),
-			Email: claims["email"].(string),
+			Name:  claims.Name,
+			Email: claims.Email,
 		}
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
