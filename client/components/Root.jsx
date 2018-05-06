@@ -3,7 +3,7 @@ import { Provider, connect } from 'react-redux'
 import { HashRouter, Route, Redirect, Switch } from 'react-router-dom'
 import { authenticateUser } from '../actions/user'
 import Register from './user/Register'
-import Chat from './Chat'
+import Chat from './chat/Chat'
 
 class Root extends React.Component {
     componentDidMount() {
