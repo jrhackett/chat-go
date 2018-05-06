@@ -3,7 +3,22 @@ package main
 import (
 	"log"
 	"net/http"
+	"time"
+
+	"github.com/gorilla/websocket"
 )
+
+type (
+	Message struct {
+		User      User      `json:"user"`
+		Message   string    `json:"message"`
+		Timestamp time.Time `json:"timestamp"`
+	}
+)
+
+var clients = make(map[*websocket.Conn]bool)
+var broadcast = make(chan Message)
+var upgrader = websocket.Upgrader{}
 
 func handleConnections(w http.ResponseWriter, r *http.Request) {
 	ws, err := upgrader.Upgrade(w, r, nil)
@@ -16,12 +31,12 @@ func handleConnections(w http.ResponseWriter, r *http.Request) {
 	clients[ws] = true
 
 	for {
-		var msg Message
-		err := ws.ReadJSON(&msg)
-		if err != nil {
+		msg := Message{}
+		if err := ws.ReadJSON(&msg); err != nil {
 			delete(clients, ws)
 			break
 		}
+		msg.Timestamp = time.Now()
 		broadcast <- msg
 	}
 }

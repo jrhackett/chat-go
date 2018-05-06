@@ -4,18 +4,8 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/gorilla/websocket"
 	"github.com/joho/godotenv"
 )
-
-type Message struct {
-	User    User   `json:"user"`
-	Message string `json:"message"`
-}
-
-var clients = make(map[*websocket.Conn]bool)
-var broadcast = make(chan Message)
-var upgrader = websocket.Upgrader{}
 
 func main() {
 	envErr := godotenv.Load()
