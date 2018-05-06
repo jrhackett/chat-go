@@ -3,6 +3,7 @@ package main
 import (
 	"log"
 	"net/http"
+	"os"
 
 	"github.com/joho/godotenv"
 )
@@ -13,16 +14,19 @@ func main() {
 		log.Fatal("Error loading .env file")
 	}
 
+	port := os.Getenv("PORT")
+	if port == "" {
+		log.Fatal("Must specify a PORT environment variable")
+	}
+
 	http.HandleFunc("/ws", handleConnections)
 	http.HandleFunc("/api/v1/register", register)
 	http.HandleFunc("/api/v1/auth", auth)
-	// TODO production file serving
 
 	go handleMessages()
 
-	log.Println("http server started on :8000")
-	err := http.ListenAndServe(":8000", nil)
-	if err != nil {
+	log.Println("http server started on :" + port)
+	if err := http.ListenAndServe(":"+port, nil); err != nil {
 		log.Fatal("ListenAndServe: ", err)
 	}
 }

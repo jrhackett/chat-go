@@ -11,7 +11,10 @@ This is a simple chat app written in Go and React.js.
 3. `go get github.com/jrhackett/gochat`
 4. `cd $GOHOME/src/github.com/jrhackett/gochat`
 5. `dep ensure`
-6. `echo SIGNING_SECRET=<your HMAC signing secret> > .env`
+6. Create a `.env` file and add values for the following variables:
+    * `SIGNING_SECRET` is the HMAC signing secret
+    * `AUTH_TOKEN_NAME` is the name of the auth token cookie
+    * `PORT` is the port to host the server on
 7. `cd client`
 8. `npm i`
 
@@ -20,8 +23,6 @@ This is a simple chat app written in Go and React.js.
 1. `cd $GOHOME/src/github.com/jrhackett/gochat`
 2. `go build -o main`
 3. `./main`
-
-Note that the server runs on port 8000 by default. If you need to change it, you can change it in `main.go`.
 
 ### Running the client
 

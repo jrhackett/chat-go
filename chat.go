@@ -9,6 +9,7 @@ import (
 )
 
 type (
+	// Message is the message object
 	Message struct {
 		User      User      `json:"user"`
 		Message   string    `json:"message"`
@@ -45,8 +46,7 @@ func handleMessages() {
 	for {
 		msg := <-broadcast
 		for client := range clients {
-			err := client.WriteJSON(msg)
-			if err != nil {
+			if err := client.WriteJSON(msg); err != nil {
 				client.Close()
 				delete(clients, client)
 			}

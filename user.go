@@ -11,11 +11,13 @@ import (
 )
 
 type (
+	// User describes the user object
 	User struct {
 		Name  string `json:"name"`
 		Email string `json:"email"`
 	}
 
+	// CustomClaims describes the claim object for signing the JWT
 	CustomClaims struct {
 		Name  string `json:"name"`
 		Email string `json:"email"`
@@ -46,7 +48,7 @@ func register(w http.ResponseWriter, r *http.Request) {
 	}
 
 	http.SetCookie(w, &http.Cookie{
-		Name:    "gochat-auth-token",
+		Name:    os.Getenv("AUTH_TOKEN_NAME"),
 		Value:   tokenString,
 		Expires: time.Now().Add(time.Hour * 168),
 	})
@@ -56,13 +58,15 @@ func register(w http.ResponseWriter, r *http.Request) {
 }
 
 func auth(w http.ResponseWriter, r *http.Request) {
-	cookie, cookieErr := r.Cookie("gochat-auth-token")
+	cookie, cookieErr := r.Cookie(os.Getenv("AUTH_TOKEN_NAME"))
 	if cookieErr != nil || cookie == nil || cookie.Value == "" {
 		w.WriteHeader(http.StatusUnauthorized)
 		return
 	}
 
 	token, err := jwt.ParseWithClaims(cookie.Value, &CustomClaims{}, func(t *jwt.Token) (interface{}, error) {
+		// need to check the alg matches
+		// https://auth0.com/blog/critical-vulnerabilities-in-json-web-token-libraries/
 		if _, ok := t.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, fmt.Errorf("Unexpected signing method: %v", t.Header["alg"])
 		}
