@@ -8,7 +8,7 @@ export const registerUser = (user) => {
                 dispatch(successfulUserAuth(res.data))
             })
             .catch(() => {
-                // dispatch(failedUserAuth())
+                dispatch(failedUserAuth())
             })
     }
 }
@@ -20,8 +20,7 @@ export const authenticateUser = () => {
                 dispatch(successfulUserAuth(res.data))
             })
             .catch((e) => {
-                console.log(e)
-                // dispatch(failedUserAuth())
+                dispatch(failedUserAuth())
             })
     }
 }
